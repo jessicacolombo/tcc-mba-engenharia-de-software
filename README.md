@@ -1,58 +1,112 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📊 Avaliação Experimental: Amazon SQS Standard vs. FIFO
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este repositório contém o código-fonte e o ambiente de execução da Prova de Conceito (PoC) desenvolvida para o Trabalho de Conclusão de Curso do **MBA em Engenharia de Software pela USP ESALQ**.
 
-## About Laravel
+## 🎯 Objetivo do Projeto
+O objetivo desta pesquisa aplicada é avaliar e comparar empiricamente o desempenho (latência e *throughput*) e o comportamento (garantia de ordenação) dos modelos de filas **Standard** e **FIFO** do serviço **Amazon Simple Queue Service (SQS)**. O estudo visa fornecer parâmetros quantitativos claros sobre os *trade-offs* entre alta disponibilidade e consistência rigorosa em arquiteturas distribuídas assíncronas.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📈 Resumo dos Resultados Preliminares
+A prova de conceito consistiu no envio e processamento de um lote de 100 mensagens para cada tipo de fila. Os dados coletados comprovaram empiricamente o alto índice de desordenamento da fila Standard contra a integridade sequencial perfeita da fila FIFO:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Métrica | Fila FIFO | Fila Standard |
+| :--- | :--- | :--- |
+| **Garantia de Ordenação (Inversões)** | 0 (0,0%) | 97 (97,0%) |
+| **Throughput (Vazão)** | 2,36 msg/s | 2,32 msg/s |
+| **Latência Média** | 13.040,48 ms | 13.975,97 ms |
+| **Latência Mínima** | 2.706,05 ms | 1.847,26 ms |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+> **Nota Arquitetural:** Os tempos médios de latência na casa dos 13 segundos refletem o *queue wait time* (tempo de permanência na fila). Como o consumidor local operou de forma sequencial (*single-thread*) e a gravação ocorreu em um banco SQLite (que possui restrições de *file locking*), gerou-se um enfileiramento progressivo. Essa limitação da PoC justifica a evolução futura da pesquisa para um modelo de telemetria distribuída (OpenTelemetry).
 
-## Learning Laravel
+## 🛠️ Tecnologias Utilizadas
+* **Linguagem:** PHP 8.3 (CLI)
+* **Framework:** Laravel 11.x
+* **Infraestrutura/Nuvem:** Amazon Web Services (AWS SQS - região `us-east-1`)
+* **Integração:** AWS SDK for PHP
+* **Armazenamento Local:** SQLite
+* **Ambiente:** Docker e Docker Compose
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Pré-requisitos
+Para rodar este projeto localmente, você precisará ter instalado em sua máquina:
+* [Docker](https://www.docker.com/get-started) e [Docker Compose](https://docs.docker.com/compose/install/)
+* Git
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+**Configuração na AWS:**
+Você precisará de uma conta AWS com credenciais (Access Key e Secret Key) com permissões para o SQS. É necessário criar duas filas previamente no console da AWS:
+1. Uma fila do tipo **Standard**.
+2. Uma fila do tipo **FIFO** (com a opção *Content-based deduplication* ativada).
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Como Executar o Projeto
 
+**1. Clone o repositório**
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+cd seu-repositorio
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+2. Configure as variáveis de ambiente
+Faça uma cópia do arquivo de exemplo e insira suas credenciais da AWS e as URLs das filas criadas:
 
-## Contributing
+```bash
+cp .env.example .env
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+No arquivo .env, preencha as seguintes chaves:
 
-## Code of Conduct
+```
+AWS_ACCESS_KEY_ID=sua_access_key
+AWS_SECRET_ACCESS_KEY=sua_secret_key
+AWS_DEFAULT_REGION=us-east-1
+SQS_STANDARD_QUEUE_URL=[https://sqs.us-east-1.amazonaws.com/](https://sqs.us-east-1.amazonaws.com/)...
+SQS_FIFO_QUEUE_URL=[https://sqs.us-east-1.amazonaws.com/](https://sqs.us-east-1.amazonaws.com/)...
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. Suba o ambiente Docker
 
-## Security Vulnerabilities
+```bash
+docker build -t tcc-laravel-sqs .  
+docker run -d --name tcc-laravel-sqs -v "$(pwd):/var/www" tcc-laravel-sqs
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4. Instale as dependências e prepare o banco de dados
+Acesse o contêiner da aplicação para instalar os pacotes do Composer e rodar as migrations do banco SQLite:
 
-## License
+```bash
+docker exec -it tcc-laravel-sqs bash      
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## dentro do container docker 
+composer install 
+php artisan migrate
+```
+
+5. Executando os Experimentos
+Para disparar as mensagens (Produtor), utilize o comando:
+
+```bash
+## dentro do container docker -> docker exec -it tcc-laravel-sqs bash 
+
+php artisan sqs:benchmark standard --total=100
+php artisan sqs:benchmark fifo --total=100
+
+```
+
+Para processar as mensagens (Consumidor/Worker) e gravar as métricas no banco de dados, inicie o worker do Laravel:
+
+```bash
+## dentro do container docker -> docker exec -it tcc-laravel-sqs bash 
+
+php artisan queue:work sqs --queue=tcc-fila-standard
+php artisan queue:work sqs --queue=tcc-fila-fifo.fifo
+```
+
+## Estrutura de Dados
+Ao final do processamento, as métricas de tempo de envio, recebimento, latência em milissegundos e ordem de processamento estarão salvas no arquivo de banco de dados localizado em database/database.sqlite.
+
+Autora: Jéssica Aparecida Colombo
+
+Orientadora: Prof.ª Mestra Daniele Aparecida Cicillini Pimenta
+
+Instituição: USP ESALQ - Pecege (MBA em Engenharia de Software)
