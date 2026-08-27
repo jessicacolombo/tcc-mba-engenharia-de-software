@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use OpenTelemetry\API\Trace\TracerProviderInterface;
 
 class ProcessSqsMessage implements ShouldQueue
 {
@@ -29,21 +30,33 @@ class ProcessSqsMessage implements ShouldQueue
         return (string) config('queue.connections.sqs-fifo.message_group_id', 'default_group');
     }
 
-    public function handle(): void
+    public function handle(TracerProviderInterface $tracerProvider): void
     {
-        $receivedTimestamp = microtime(true);
-        $latencyMs = ($receivedTimestamp - $this->sentTimestamp) * 1000;
-        $sqsJobId = $this->job?->getJobId();
+        $tracer = $tracerProvider->getTracer('io.opentelemetry.contrib.php');
+        $span = $tracer->spanBuilder('Processar_Mensagem_SQS')->startSpan();
+        $scope = $span->activate();
 
-        DB::table('queue_metrics')->insert([
-            'queue_type' => $this->queueType,
-            'sequence_id' => $this->sequenceId,
-            'sqs_message_id' => $sqsJobId,
-            'sent_timestamp' => $this->sentTimestamp,
-            'received_timestamp' => $receivedTimestamp,
-            'latency_ms' => $latencyMs,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        try {
+            $span->setAttribute('queue_type', $this->queueType);
+            $span->setAttribute('sequence_id', $this->sequenceId);
+
+            $receivedTimestamp = microtime(true);
+            $latencyMs = ($receivedTimestamp - $this->sentTimestamp) * 1000;
+            $sqsJobId = $this->job?->getJobId();
+
+            DB::table('queue_metrics')->insert([
+                'queue_type' => $this->queueType,
+                'sequence_id' => $this->sequenceId,
+                'sqs_message_id' => $sqsJobId,
+                'sent_timestamp' => $this->sentTimestamp,
+                'received_timestamp' => $receivedTimestamp,
+                'latency_ms' => $latencyMs,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } finally {
+            $scope->detach();
+            $span->end();
+        }
     }
 }
