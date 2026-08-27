@@ -161,7 +161,7 @@ Este estudo parte da hipótese de que:
 
 ## 👩‍🎓 Autoria e Contexto Acadêmico
 
-**Autora:** Jéssica Aparecida Colombo
-**Orientadora:** Prof.ª Mestra Daniele Aparecida Cicillini Pimenta
-**Instituição:** USP ESALQ - Pecege
-**Programa:** MBA em Engenharia de Software
+**Autora:** Jéssica Aparecida Colombo <br>
+**Orientadora:** Prof.ª Mestra Daniele Aparecida Cicillini Pimenta <br>
+**Instituição:** USP ESALQ - Pecege <br>
+**Programa:** MBA em Engenharia de Software <br>
