@@ -16,12 +16,14 @@ class ProcessSqsMessage implements ShouldQueue
 
     private string $queueType;
     private int $sequenceId;
+    private string $batchId;
     private float $sentTimestamp;
 
-    public function __construct(string $queueType, int $sequenceId)
+    public function __construct(string $queueType, int $sequenceId, string $batchId)
     {
         $this->queueType = $queueType;
         $this->sequenceId = $sequenceId;
+        $this->batchId = $batchId;
         $this->sentTimestamp = microtime(true);
     }
 
@@ -39,12 +41,14 @@ class ProcessSqsMessage implements ShouldQueue
         try {
             $span->setAttribute('queue_type', $this->queueType);
             $span->setAttribute('sequence_id', $this->sequenceId);
+            $span->setAttribute('batch_id', $this->batchId);
 
             $receivedTimestamp = microtime(true);
             $latencyMs = ($receivedTimestamp - $this->sentTimestamp) * 1000;
             $sqsJobId = $this->job?->getJobId();
 
             DB::table('queue_metrics')->insert([
+                'batch_id' => $this->batchId,
                 'queue_type' => $this->queueType,
                 'sequence_id' => $this->sequenceId,
                 'sqs_message_id' => $sqsJobId,

@@ -31,6 +31,7 @@ Para cada cenário, serão coletadas métricas de envio, recebimento, latência 
 - **Throughput** agregado do sistema.
 - **Percentual de inversões de ordem**.
 - **Tempo total de execução** do experimento.
+- **Identificador único do lote** para separar execuções posteriores.
 
 ## 📈 Resultados Finais
 
@@ -142,6 +143,7 @@ http://localhost:16686/search
 Ao final de cada execução, recomenda-se consolidar os dados em tabelas separadas por volume e por tipo de fila, com os seguintes campos:
 
 - Identificador do teste
+- Identificador único do lote
 - Tipo de fila
 - Quantidade de eventos
 - Tempo total de execução

@@ -35,11 +35,33 @@ services:
         image: jaegertracing/all-in-one:latest
         container_name: jaeger
         restart: unless-stopped
+        command:
+            - "--badger.ephemeral=false"
+            - "--badger.directory-key=/badger/data/keys"
+            - "--badger.directory-value=/badger/data/values"
+            - "--badger.span-store-ttl=72h0m0s"
+        environment:
+            - COLLECTOR_OTLP_ENABLED=true
+            - SPAN_STORAGE_TYPE=badger
         ports:
             - "16686:16686" # Jaeger UI
             - "4318:4318" # OTLP/HTTP Receiver
-        environment:
-            - COLLECTOR_OTLP_ENABLED=true
+        volumes:
+            - jaeger-badger-data:/badger
+        depends_on:
+            prepare-data-dir:
+                condition: service_completed_successfully
+        networks:
+            - laravel
+
+    prepare-data-dir:
+        image: alpine:3.20
+        container_name: jaeger-prepare-data-dir
+        user: root
+        command: >
+            sh -c "mkdir -p /badger/data && chown -R 10001:10001 /badger"
+        volumes:
+            - jaeger-badger-data:/badger
         networks:
             - laravel
 
@@ -49,4 +71,6 @@ networks:
 
 volumes:
     mysql-data:
+        driver: local
+    jaeger-badger-data:
         driver: local

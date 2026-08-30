@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Jobs\ProcessSqsMessage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 
 class BenchmarkQueueCommand extends Command
@@ -50,11 +51,12 @@ class BenchmarkQueueCommand extends Command
             $this->info("Starting to dispatch {$total} messages to [{$type}] queue in batches...");
             $this->output->progressStart($total);
 
+            $batchId = (string) Str::uuid();
             $chunkSize = 500;
             $chunk = [];
 
             for ($i = 1; $i <= $total; $i++) {
-                $chunk[] = new ProcessSqsMessage($type, $i);
+                $chunk[] = new ProcessSqsMessage($type, $i, $batchId);
 
                 if (count($chunk) === $chunkSize || $i === $total) {
                     Queue::connection($connection)->bulk($chunk, '', $queueName);
@@ -66,7 +68,6 @@ class BenchmarkQueueCommand extends Command
 
             $this->output->progressFinish();
             $this->info("\nAll {$total} messages dispatched successfully.");
-
         } finally {
             $scope->detach();
             $span->end();
