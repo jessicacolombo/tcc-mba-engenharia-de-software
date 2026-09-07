@@ -11,6 +11,66 @@ GROUP BY batch_id, queue_type
 ORDER BY batch_id, queue_type;
 
 
+-- Resumo do ciclo de vida por lote
+SELECT
+    runs.batch_id,
+    runs.queue_type,
+    runs.expected_messages AS mensagens_enviadas,
+    COALESCE(SUM(metrics.status = 'processed'), 0) AS mensagens_processadas,
+    runs.expected_messages - COUNT(metrics.sequence_id) AS mensagens_pendentes,
+    COALESCE(SUM(metrics.status = 'failed'), 0) AS mensagens_com_falha,
+    COALESCE(SUM(GREATEST(metrics.attempts - 1, 0)), 0) AS retries,
+    COALESCE(SUM(metrics.duplicate_count), 0) AS reentregas_apos_processamento,
+    runs.started_at AS inicio_envio,
+    MAX(COALESCE(metrics.processed_at, metrics.failed_at, metrics.received_timestamp, runs.dispatched_at, runs.started_at)) AS fim_processamento,
+    MAX(COALESCE(metrics.processed_at, metrics.failed_at, metrics.received_timestamp, runs.dispatched_at, runs.started_at)) - runs.started_at AS tempo_total_segundos
+FROM queue_benchmark_runs AS runs
+LEFT JOIN queue_metrics AS metrics
+    ON metrics.batch_id = runs.batch_id
+    AND metrics.queue_type = runs.queue_type
+GROUP BY runs.batch_id, runs.queue_type, runs.expected_messages, runs.started_at
+ORDER BY runs.batch_id, runs.queue_type;
+
+
+-- Lotes cujo envio ainda não terminou
+SELECT
+    batch_id,
+    queue_type,
+    expected_messages,
+    status,
+    started_at,
+    dispatched_at
+FROM queue_benchmark_runs
+WHERE status <> 'dispatched';
+
+
+-- Detalhamento de todas as tentativas, incluindo retries e falhas
+SELECT
+    batch_id,
+    queue_type,
+    sequence_id,
+    attempt,
+    status,
+    started_at,
+    finished_at,
+    error_message
+FROM queue_metric_attempts
+ORDER BY batch_id, queue_type, sequence_id, attempt;
+
+
+-- Mensagens processadas mais de uma vez
+SELECT
+    batch_id,
+    queue_type,
+    sequence_id,
+    processing_count,
+    duplicate_count,
+    attempts
+FROM queue_metrics
+WHERE duplicate_count > 0
+ORDER BY batch_id, queue_type, sequence_id;
+
+
 SELECT
     batch_id,
     queue_type,

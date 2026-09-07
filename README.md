@@ -123,12 +123,52 @@ php artisan sqs:benchmark fifo --total=10000
 php artisan sqs:benchmark fifo --total=50000
 ```
 
-### 3. Processar as mensagens
+### 3. Processar as mensagens com o worker configurado
+
+O processamento é realizado pelo Supervisor, conforme definido em
+`laravel-worker.conf`. A configuração mantém **cinco processos** do worker em
+execução, e cada processo escuta as duas filas:
+
+- `tcc-fila-standard`
+- `tcc-fila-fifo.fifo`
+
+O comando configurado utiliza `--sleep=3`, permite até três tentativas por
+mensagem (`--tries=3`) e reinicia cada processo após, no máximo, uma hora
+(`--max-time=3600`). Os eventos do worker são registrados em
+`storage/logs/worker.log`.
+
+Depois de iniciar o ambiente, confirmar que o Supervisor está executando os
+cinco processos configurados. Não iniciar comandos adicionais de
+`queue:work`, pois isso alteraria a quantidade de consumidores do experimento.
+
+Para cada rodada, executar o produtor para **apenas um tipo de fila por vez** e
+aguardar o processamento completo do lote antes de iniciar a rodada seguinte.
+Assim, as mensagens das duas filas não competem durante a mesma medição e o
+`batch_id` pode ser utilizado para confirmar o término do processamento:
 
 ```bash
-php artisan queue:work sqs --queue=tcc-fila-standard
-php artisan queue:work sqs --queue=tcc-fila-fifo.fifo
+php artisan sqs:benchmark standard --total=1000
 ```
+
+Após o envio, aguardar o processamento das 1.000 mensagens pelos workers e
+confirmar a conclusão no banco. Repetir o procedimento para os volumes de
+10.000 e 50.000 mensagens e, depois, executar as mesmas rodadas para a fila
+FIFO:
+
+```bash
+php artisan sqs:benchmark fifo --total=1000
+```
+
+Durante todas as rodadas, manter constantes a quantidade de processos, o
+comando do worker, a configuração de retry, o intervalo de espera e o tempo
+máximo de execução. Registrar no protocolo experimental a configuração
+`numprocs=5` e os parâmetros `sleep=3`, `tries=3` e `max-time=3600`.
+
+As métricas não são gravadas diretamente pelos cinco workers do benchmark. O
+job publica eventos na conexão `database`, na fila `metrics`, e um worker
+separado (`laravel-metrics-worker`) persiste esses eventos em
+`queue_metrics` e `queue_metric_attempts`. Esse worker possui `numprocs=1` e
+não deve ser contabilizado no throughput das filas Standard e FIFO.
 
 ### 4. Consultar os traces
 
@@ -145,14 +185,35 @@ Ao final de cada execução, recomenda-se consolidar os dados em tabelas separad
 - Identificador do teste
 - Identificador único do lote
 - Tipo de fila
+- Status final da mensagem
+- Número de tentativas
+- Quantidade de processamentos recebidos
+- Quantidade de reentregas após processamento
 - Quantidade de eventos
 - Tempo total de execução
 - Throughput
 - Latência média
 - Latência mínima
 - Latência máxima
+- Timestamp de processamento
+- Timestamp de falha
+- Mensagem de erro
 - Quantidade de inversões
 - Percentual de inversões
+
+Os registros individuais são armazenados em `queue_metrics`. A quantidade
+esperada de mensagens e o estado do envio são armazenados em
+`queue_benchmark_runs`. Cada tentativa de
+entrega é armazenada em `queue_metric_attempts`, permitindo diferenciar uma
+mensagem processada na primeira tentativa de uma mensagem que precisou de
+retry. Uma mensagem criada pelo produtor começa com status `dispatched` e pode
+terminar como `processed` ou `failed`; o status `retrying` identifica uma
+tentativa intermediária que será reenviada pelo worker.
+
+As mensagens não processadas podem ser identificadas pelo status
+`dispatched` ou `retrying` após o encerramento da janela de coleta. A tabela
+`failed_jobs` continua sendo a fonte complementar do Laravel para falhas que
+esgotaram as três tentativas configuradas no worker.
 
 ## 🧠 Interpretação Esperada dos Resultados
 

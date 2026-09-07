@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\ProcessSqsMessage;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
@@ -52,11 +53,25 @@ class BenchmarkQueueCommand extends Command
             $this->output->progressStart($total);
 
             $batchId = (string) Str::uuid();
+            $startedAt = microtime(true);
+
+            DB::table('queue_benchmark_runs')->insert([
+                'batch_id' => $batchId,
+                'queue_type' => $type,
+                'expected_messages' => $total,
+                'status' => 'dispatching',
+                'started_at' => $startedAt,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             $chunkSize = 500;
             $chunk = [];
 
             for ($i = 1; $i <= $total; $i++) {
-                $chunk[] = new ProcessSqsMessage($type, $i, $batchId);
+                $message = new ProcessSqsMessage($type, $i, $batchId);
+
+                $chunk[] = $message;
 
                 if (count($chunk) === $chunkSize || $i === $total) {
                     Queue::connection($connection)->bulk($chunk, '', $queueName);
@@ -67,7 +82,16 @@ class BenchmarkQueueCommand extends Command
             }
 
             $this->output->progressFinish();
+            DB::table('queue_benchmark_runs')
+                ->where('batch_id', $batchId)
+                ->update([
+                    'status' => 'dispatched',
+                    'dispatched_at' => microtime(true),
+                    'updated_at' => now(),
+                ]);
+
             $this->info("\nAll {$total} messages dispatched successfully.");
+            $this->info("Batch ID: {$batchId}");
         } finally {
             $scope->detach();
             $span->end();
