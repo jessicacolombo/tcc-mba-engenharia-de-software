@@ -22,6 +22,8 @@ SELECT
     COALESCE(SUM(GREATEST(metrics.attempts - 1, 0)), 0) AS retries,
     COALESCE(SUM(metrics.duplicate_count), 0) AS reentregas_apos_processamento,
     runs.started_at AS inicio_envio,
+    runs.dispatched_at AS fim_disparo,
+    runs.finished_at AS fim_execucao,
     MAX(COALESCE(metrics.processed_at, metrics.failed_at, metrics.received_timestamp, runs.dispatched_at, runs.started_at)) AS fim_processamento,
     MAX(COALESCE(metrics.processed_at, metrics.failed_at, metrics.received_timestamp, runs.dispatched_at, runs.started_at)) - runs.started_at AS tempo_total_segundos
 FROM queue_benchmark_runs AS runs

@@ -197,6 +197,7 @@ Ao final de cada execução, recomenda-se consolidar os dados em tabelas separad
 - Latência máxima
 - Timestamp de processamento
 - Timestamp de falha
+- Timestamp final da execução do lote (`finished_at`)
 - Mensagem de erro
 - Quantidade de inversões
 - Percentual de inversões
