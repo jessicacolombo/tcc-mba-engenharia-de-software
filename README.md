@@ -1,102 +1,89 @@
 # 📊 Avaliação Experimental: Amazon SQS Standard vs. FIFO
 
-Este repositório contém a implementação da prova de conceito e o ambiente de execução utilizados no Trabalho de Conclusão de Curso do **MBA em Engenharia de Software da USP ESALQ**.
+Prova de conceito e ambiente de execução do Trabalho de Conclusão de Curso do
+**MBA em Engenharia de Software da USP ESALQ**. Este README documenta a
+metodologia e os resultados consolidados dos testes com **1.000, 10.000 e
+50.000 eventos** em cada tipo de fila.
 
-O objetivo deste README é servir como **modelo final de documentação dos resultados**, já estruturado para receber os valores consolidados após a execução dos testes com **1000, 10000 e 50000 eventos** em cada tipo de fila.
+## 🎯 Objetivo
 
-## 🎯 Objetivo da Pesquisa
-
-Esta pesquisa aplicada investiga, de forma empírica, o comportamento e o desempenho dos modelos de fila **Standard** e **FIFO** do **Amazon Simple Queue Service (SQS)**. O foco está em três dimensões principais:
+Investigar, de forma empírica, o comportamento das filas **Standard** e
+**FIFO** do Amazon SQS em três dimensões:
 
 - **Latência** de enfileiramento e processamento.
 - **Throughput** do pipeline produtor-consumidor.
-- **Garantia de ordenação** entre mensagens publicadas e mensagens processadas.
-
-O estudo busca evidenciar os trade-offs entre flexibilidade, consistência e previsibilidade de processamento em arquiteturas assíncronas baseadas em filas.
+- **Garantia de ordenação** entre mensagens publicadas e processadas.
 
 ## 🧪 Desenho Experimental
 
-Os experimentos serão executados em três cenários de carga para cada tipo de fila:
+Cada tipo de fila é testado com **1.000, 10.000 e 50.000 eventos**. Em cada
+cenário são coletadas métricas de envio, recebimento, latência e ordem de
+processamento, comparando Standard e FIFO sob o mesmo volume.
 
-- **1.000 eventos**
-- **10.000 eventos**
-- **50.000 eventos**
+**Métricas avaliadas:** latência média/mínima/máxima, throughput agregado,
+percentual de inversões de ordem, tempo total de execução e `batch_id` como
+identificador único de cada lote.
 
-Para cada cenário, serão coletadas métricas de envio, recebimento, latência e ordem de processamento, permitindo uma comparação direta entre os perfis Standard e FIFO.
+## 📈 Resultados
 
-### Métricas Avaliadas
-
-- **Latência média** por mensagem.
-- **Latência mínima** e **latência máxima**.
-- **Throughput** agregado do sistema.
-- **Percentual de inversões de ordem**.
-- **Tempo total de execução** do experimento.
-- **Identificador único do lote** para separar execuções posteriores.
-
-## 📈 Resultados Finais
-
-> **Observação:** esta seção foi estruturada como modelo final e será preenchida com os valores consolidados após a execução dos testes reais.
+> Preencha esta seção com os valores retornados pela consulta 3 de
+> `commands.sql` após cada rodada.
 
 ### 1.000 eventos
 
 | Métrica                        |  Fila FIFO  | Fila Standard |
-| :----------------------------- | :---------: | :-----------: |
-| Throughput (mensagens/segundo) | A preencher |  A preencher  |
-| Latência média (ms)            | A preencher |  A preencher  |
-| Latência mínima (ms)           | A preencher |  A preencher  |
-| Latência máxima (ms)           | A preencher |  A preencher  |
-| Inversões de ordem             | A preencher |  A preencher  |
-| Percentual de inversões        | A preencher |  A preencher  |
+| :------------------------------ | :---------: | :-----------: |
+| Throughput (mensagens/segundo)  |     2.2     |     6.12      |
+| Latência média (ms)             |  180223.73  |    41779.13   |
+| Latência mínima (ms)            |   1234.25   |     484.65    |
+| Latência máxima (ms)            |  373849.42  |    83174.33   |
+| Quebras de ordem                |     0.00    |     640.80    |
+| Percentual de quebras           |    0.0000   |    64.1442    |
 
 ### 10.000 eventos
 
-| Métrica                        |  Fila FIFO  | Fila Standard |
-| :----------------------------- | :---------: | :-----------: |
-| Throughput (mensagens/segundo) | A preencher |  A preencher  |
-| Latência média (ms)            | A preencher |  A preencher  |
-| Latência mínima (ms)           | A preencher |  A preencher  |
-| Latência máxima (ms)           | A preencher |  A preencher  |
-| Inversões de ordem             | A preencher |  A preencher  |
-| Percentual de inversões        | A preencher |  A preencher  |
+| Métrica                        |   Fila FIFO   | Fila Standard |
+| :------------------------------ | :-----------: | :-----------: |
+| Throughput (mensagens/segundo)  |      2.11     |     6.13      |
+| Latência média (ms)             |  1535220.50   |    41460.60   |
+| Latência mínima (ms)            |   80918.56    |     165.31    |
+| Latência máxima (ms)            |  3176003.21   |    86586.85   |
+| Quebras de ordem                |      0.00     |    5773.60    |
+| Percentual de quebras           |     0.0000    |    57.7418    |
 
 ### 50.000 eventos
 
-| Métrica                        |  Fila FIFO  | Fila Standard |
-| :----------------------------- | :---------: | :-----------: |
-| Throughput (mensagens/segundo) | A preencher |  A preencher  |
-| Latência média (ms)            | A preencher |  A preencher  |
-| Latência mínima (ms)           | A preencher |  A preencher  |
-| Latência máxima (ms)           | A preencher |  A preencher  |
-| Inversões de ordem             | A preencher |  A preencher  |
-| Percentual de inversões        | A preencher |  A preencher  |
+| Métrica                        |   Fila FIFO   | Fila Standard |
+| :------------------------------ | :-----------: | :-----------: |
+| Throughput (mensagens/segundo)  |      2.06     |     6.11      |
+| Latência média (ms)             |  7198322.24   |    41517.09   |
+| Latência mínima (ms)            |    1691.68    |     153.02    |
+| Latência máxima (ms)            | 15707214.53   |   103171.21   |
+| Quebras de ordem                |      0.00     |   28287.40    |
+| Percentual de quebras           |     0.0000    |    56.5759    |
 
-## 🔎 Análise Comparativa Esperada
+## 🔎 Critérios de Análise
 
-Ao final dos testes, espera-se observar:
+- **FIFO**: preservação integral da ordem de processamento.
+- **Standard**: possibilidade de reordenação, mais evidente em volumes altos.
+- Diferenças de tempo total e latência tendem a crescer com o volume,
+  sobretudo sob contenção de consumidor.
 
-- Na **fila FIFO**, preservação integral da ordem de processamento.
-- Na **fila Standard**, possibilidade de reordenação entre mensagens, especialmente em cenários com maior volume.
-- Diferenças mais evidentes de tempo total e latência em volumes mais altos, sobretudo sob contenção de consumidor.
+## 🧠 Hipótese
 
-## 🛠️ Tecnologias Utilizadas
+- **FIFO**: maior previsibilidade e ordenação, com possível custo de
+  desempenho em alta carga.
+- **Standard**: maior flexibilidade operacional, com maior risco de desordem.
 
-- **Linguagem:** PHP 8.3
-- **Framework:** Laravel 12.x
-- **Infraestrutura local:** Docker e Docker Compose
-- **Fila em nuvem:** Amazon SQS
-- **Banco de apoio:** MySQL 8.0
-- **Observabilidade:** OpenTelemetry + Jaeger
-- **Integração AWS:** AWS SDK for PHP
+## 🛠️ Tecnologias
 
-## 📦 Ambiente de Execução
+- PHP 8.3 · Laravel 12.x
+- Docker e Docker Compose
+- Amazon SQS · MySQL 8.0
+- OpenTelemetry + Jaeger
+- AWS SDK for PHP
 
-O projeto foi preparado para execução em ambiente containerizado, com os seguintes serviços principais:
-
-- Aplicação Laravel
-- Banco MySQL
-- Jaeger para visualização de traces
-
-## ▶️ Como Executar os Testes
+## ▶️ Como Executar
 
 ### 1. Preparar o ambiente
 
@@ -105,127 +92,85 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-### 2. Executar os testes por volume
+### 2. Disparar os lotes
 
-#### Fila Standard
+Execute **um tipo de fila por vez** e aguarde o processamento completo do
+lote (confirme pelo `batch_id`, consulta 1 de `commands.sql`) antes de
+iniciar o próximo. Isso evita que as duas filas concorram pelos mesmos
+workers durante a mesma medição.
 
 ```bash
 php artisan sqs:benchmark standard --total=1000
 php artisan sqs:benchmark standard --total=10000
 php artisan sqs:benchmark standard --total=50000
-```
-
-#### Fila FIFO
-
-```bash
 php artisan sqs:benchmark fifo --total=1000
 php artisan sqs:benchmark fifo --total=10000
 php artisan sqs:benchmark fifo --total=50000
 ```
 
-### 3. Processar as mensagens com o worker configurado
+Repita o protocolo variando a ordem dos volumes entre rodadas (para reduzir
+viés de posição) e execute pelo menos três repetições por cenário — a
+consulta 3 de `commands.sql` já consolida a média entre lotes.
 
-O processamento é realizado pelo Supervisor, conforme definido em
-`laravel-worker.conf`. A configuração mantém **cinco processos** do worker em
-execução, e cada processo escuta as duas filas:
+### 3. Processamento pelo worker
 
-- `tcc-fila-standard`
-- `tcc-fila-fifo.fifo`
+O Supervisor mantém **5 processos** do worker (`laravel-worker.conf`),
+escutando `tcc-fila-standard` e `tcc-fila-fifo.fifo`, com `--sleep=3`,
+`--tries=3` e `--max-time=3600`. Logs em `storage/logs/worker.log`.
 
-O comando configurado utiliza `--sleep=3`, permite até três tentativas por
-mensagem (`--tries=3`) e reinicia cada processo após, no máximo, uma hora
-(`--max-time=3600`). Os eventos do worker são registrados em
-`storage/logs/worker.log`.
+Não inicie `queue:work` adicionais — isso alteraria o número de
+consumidores do experimento.
 
-Depois de iniciar o ambiente, confirmar que o Supervisor está executando os
-cinco processos configurados. Não iniciar comandos adicionais de
-`queue:work`, pois isso alteraria a quantidade de consumidores do experimento.
-
-Para cada rodada, executar o produtor para **apenas um tipo de fila por vez** e
-aguardar o processamento completo do lote antes de iniciar a rodada seguinte.
-Assim, as mensagens das duas filas não competem durante a mesma medição e o
-`batch_id` pode ser utilizado para confirmar o término do processamento:
-
-```bash
-php artisan sqs:benchmark standard --total=1000
-```
-
-Após o envio, aguardar o processamento das 1.000 mensagens pelos workers e
-confirmar a conclusão no banco. Repetir o procedimento para os volumes de
-10.000 e 50.000 mensagens e, depois, executar as mesmas rodadas para a fila
-FIFO:
-
-```bash
-php artisan sqs:benchmark fifo --total=1000
-```
-
-Durante todas as rodadas, manter constantes a quantidade de processos, o
-comando do worker, a configuração de retry, o intervalo de espera e o tempo
-máximo de execução. Registrar no protocolo experimental a configuração
-`numprocs=5` e os parâmetros `sleep=3`, `tries=3` e `max-time=3600`.
-
-As métricas não são gravadas diretamente pelos cinco workers do benchmark. O
-job publica eventos na conexão `database`, na fila `metrics`, e um worker
-separado (`laravel-metrics-worker`) persiste esses eventos em
-`queue_metrics` e `queue_metric_attempts`. Esse worker possui `numprocs=1` e
-não deve ser contabilizado no throughput das filas Standard e FIFO.
+As métricas **não** são gravadas pelos 5 workers de benchmark: o job publica
+um evento na conexão `database`/fila `metrics`, e um worker dedicado
+(`laravel-metrics-worker`, `numprocs=1`) persiste esse evento em
+`queue_metrics` e `queue_metric_attempts`. Esse worker não entra no cálculo
+de throughput das filas Standard/FIFO.
 
 ### 4. Consultar os traces
-
-Os traces podem ser visualizados no Jaeger em:
 
 ```text
 http://localhost:16686/search
 ```
 
-## 🧾 Estrutura dos Dados Coletados
+## 🧾 Modelo de Dados
 
-Ao final de cada execução, recomenda-se consolidar os dados em tabelas separadas por volume e por tipo de fila, com os seguintes campos:
+| Tabela                   | Conteúdo                                                             |
+| ------------------------ | --------------------------------------------------------------------- |
+| `queue_benchmark_runs`   | Um registro por lote: volume esperado, status do envio, timestamps.  |
+| `queue_metrics`          | Um registro por mensagem: status final, latência, tentativas, reentregas. |
+| `queue_metric_attempts`  | Um registro por tentativa de entrega de cada mensagem.                |
 
-- Identificador do teste
-- Identificador único do lote
-- Tipo de fila
-- Status final da mensagem
-- Número de tentativas
-- Quantidade de processamentos recebidos
-- Quantidade de reentregas após processamento
-- Quantidade de eventos
-- Tempo total de execução
-- Throughput
-- Latência média
-- Latência mínima
-- Latência máxima
-- Timestamp de processamento
-- Timestamp de falha
-- Timestamp final da execução do lote (`finished_at`)
-- Mensagem de erro
-- Quantidade de inversões
-- Percentual de inversões
+**Status de `queue_metrics`:** toda mensagem começa em `dispatched`; termina
+em `processed` ou `failed`; `retrying` marca uma tentativa intermediária que
+será reenviada. Mensagens ainda em `dispatched`/`retrying` após o fim da
+janela de coleta são consideradas não processadas. `failed_jobs` (Laravel)
+é a fonte complementar para falhas que esgotaram as tentativas configuradas.
 
-Os registros individuais são armazenados em `queue_metrics`. A quantidade
-esperada de mensagens e o estado do envio são armazenados em
-`queue_benchmark_runs`. Cada tentativa de
-entrega é armazenada em `queue_metric_attempts`, permitindo diferenciar uma
-mensagem processada na primeira tentativa de uma mensagem que precisou de
-retry. Uma mensagem criada pelo produtor começa com status `dispatched` e pode
-terminar como `processed` ou `failed`; o status `retrying` identifica uma
-tentativa intermediária que será reenviada pelo worker.
+**Cálculo das métricas** (todos os timestamps em segundos, via
+`microtime(true)`):
 
-As mensagens não processadas podem ser identificadas pelo status
-`dispatched` ou `retrying` após o encerramento da janela de coleta. A tabela
-`failed_jobs` continua sendo a fonte complementar do Laravel para falhas que
-esgotaram as três tentativas configuradas no worker.
+- `latency_ms = (received_timestamp - sent_timestamp) * 1000` — tempo entre
+  a criação do job e o início do processamento (inclui despacho, espera na
+  SQS e serialização FIFO; não é o tempo de execução do job).
+- Fim do lote = `MAX(COALESCE(processed_at, failed_at))` das mensagens
+  (`queue_benchmark_runs` não guarda mais esse dado).
+- `throughput_total_msg_s = expected_messages / (fim_lote - started_at)`.
+- Inversão de ordem = par de mensagens em que a de menor `sequence_id` foi
+  processada depois da de maior `sequence_id`; percentual calculado sobre o
+  total de pares possíveis (`n * (n - 1) / 2`), não sobre `n`, já que uma
+  mensagem pode participar de várias inversões.
 
-## 🧠 Interpretação Esperada dos Resultados
+## 📐 Consultas de Consolidação
 
-Este estudo parte da hipótese de que:
+Todas as consultas usadas para gerar os resultados estão em `commands.sql`,
+em ordem lógica: completude do lote → latência/throughput por lote →
+consolidado médio por cenário → inversões por lote → inversões consolidadas
+→ tentativas/retries → detalhamento e mensagens problemáticas (apoio).
 
-- A fila **FIFO** apresentará maior previsibilidade e ordenação, com possível custo adicional de desempenho em cenários de alta carga.
-- A fila **Standard** apresentará maior flexibilidade operacional, porém com maior risco de desordem entre mensagens.
+## 👩‍🎓 Autoria
 
-## 👩‍🎓 Autoria e Contexto Acadêmico
-
-**Autora:** Jéssica Aparecida Colombo <br>
-**Orientadora:** Prof.ª Mestra Daniele Aparecida Cicillini Pimenta <br>
-**Instituição:** USP ESALQ - Pecege <br>
-**Programa:** MBA em Engenharia de Software <br>
+**Autora:** Jéssica Aparecida Colombo </br>
+**Orientador:** Prof. Me. Marcelo Pereira da Silva </br>
+**Instituição:** USP ESALQ – Pecege </br>
+**Programa:** MBA em Engenharia de Software
