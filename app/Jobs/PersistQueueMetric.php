@@ -79,31 +79,5 @@ class PersistQueueMetric implements ShouldQueue
                 'created_at' => $now,
             ],
         );
-
-        $run = DB::table('queue_benchmark_runs')
-            ->where('batch_id', $this->batchId)
-            ->where('queue_type', $this->queueType)
-            ->first();
-
-        if ($run === null || $run->finished_at !== null) {
-            return;
-        }
-
-        $terminalMessages = DB::table('queue_metrics')
-            ->where('batch_id', $this->batchId)
-            ->where('queue_type', $this->queueType)
-            ->whereIn('status', ['processed', 'failed'])
-            ->count();
-
-        if ($terminalMessages === $run->expected_messages) {
-            DB::table('queue_benchmark_runs')
-                ->where('batch_id', $this->batchId)
-                ->whereNull('finished_at')
-                ->update([
-                    'status' => 'finished',
-                    'finished_at' => microtime(true),
-                    'updated_at' => $now,
-                ]);
-        }
     }
 }
